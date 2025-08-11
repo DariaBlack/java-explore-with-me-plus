@@ -1,3 +1,5 @@
-FROM amazoncorretto:21-jdk
-COPY target/*.jar stats-server.jar
-ENTRYPOINT ["java", "-jar", "/stats-server.jar"]
+FROM amazoncorretto:21
+
+COPY service/target/*.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "/app.jar"]
