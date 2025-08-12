@@ -15,10 +15,9 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class EndpointHitTest {
+class EndpointHitDtoTest {
 
     private ObjectMapper objectMapper;
     private Validator validator;
@@ -34,14 +33,14 @@ class EndpointHitTest {
 
     @Test
     void testValidEndpointHit() {
-        EndpointHit hit = new EndpointHit(
+        EndpointHitDto hit = new EndpointHitDto(
                 "ewm-main-service",
                 "/events/1",
                 "192.163.0.1",
                 LocalDateTime.of(2022, 9, 6, 11, 0, 23)
         );
 
-        Set<ConstraintViolation<EndpointHit>> violations = validator.validate(hit);
+        Set<ConstraintViolation<EndpointHitDto>> violations = validator.validate(hit);
 
         assertTrue(violations.isEmpty());
         assertEquals("ewm-main-service", hit.getApp());
@@ -52,14 +51,14 @@ class EndpointHitTest {
 
     @Test
     void testInvalidEndpointHit_BlankApp() {
-        EndpointHit hit = new EndpointHit(
+        EndpointHitDto hit = new EndpointHitDto(
                 "",
                 "/events/1",
                 "192.163.0.1",
                 LocalDateTime.now()
         );
 
-        Set<ConstraintViolation<EndpointHit>> violations = validator.validate(hit);
+        Set<ConstraintViolation<EndpointHitDto>> violations = validator.validate(hit);
 
         assertEquals(1, violations.size());
         assertTrue(violations.iterator().next().getMessage().contains("Идентификатор сервиса"));
@@ -67,14 +66,14 @@ class EndpointHitTest {
 
     @Test
     void testInvalidEndpointHit_BlankUri() {
-        EndpointHit hit = new EndpointHit(
+        EndpointHitDto hit = new EndpointHitDto(
                 "ewm-main-service",
                 "",
                 "192.163.0.1",
                 LocalDateTime.now()
         );
 
-        Set<ConstraintViolation<EndpointHit>> violations = validator.validate(hit);
+        Set<ConstraintViolation<EndpointHitDto>> violations = validator.validate(hit);
 
         assertEquals(1, violations.size());
         assertTrue(violations.iterator().next().getMessage().contains("URI"));
@@ -82,14 +81,14 @@ class EndpointHitTest {
 
     @Test
     void testInvalidEndpointHit_BlankIp() {
-        EndpointHit hit = new EndpointHit(
+        EndpointHitDto hit = new EndpointHitDto(
                 "ewm-main-service",
                 "/events/1",
                 "",
                 LocalDateTime.now()
         );
 
-        Set<ConstraintViolation<EndpointHit>> violations = validator.validate(hit);
+        Set<ConstraintViolation<EndpointHitDto>> violations = validator.validate(hit);
 
         assertEquals(1, violations.size());
         assertTrue(violations.iterator().next().getMessage().contains("IP-адрес"));
@@ -97,14 +96,14 @@ class EndpointHitTest {
 
     @Test
     void testInvalidEndpointHit_NullTimestamp() {
-        EndpointHit hit = new EndpointHit(
+        EndpointHitDto hit = new EndpointHitDto(
                 "ewm-main-service",
                 "/events/1",
                 "192.163.0.1",
                 null
         );
 
-        Set<ConstraintViolation<EndpointHit>> violations = validator.validate(hit);
+        Set<ConstraintViolation<EndpointHitDto>> violations = validator.validate(hit);
 
         assertEquals(1, violations.size());
         assertTrue(violations.iterator().next().getMessage().contains("Время запроса"));
@@ -112,7 +111,7 @@ class EndpointHitTest {
 
     @Test
     void testJsonSerialization() throws Exception {
-        EndpointHit hit = new EndpointHit(
+        EndpointHitDto hit = new EndpointHitDto(
                 "ewm-main-service",
                 "/events/1",
                 "192.163.0.1",
@@ -136,7 +135,7 @@ class EndpointHitTest {
                 + "\"timestamp\": \"2022-09-06 11:00:23\""
                 + "}";
 
-        EndpointHit hit = objectMapper.readValue(json, EndpointHit.class);
+        EndpointHitDto hit = objectMapper.readValue(json, EndpointHitDto.class);
 
         assertEquals("ewm-main-service", hit.getApp());
         assertEquals("/events/1", hit.getUri());
@@ -146,7 +145,7 @@ class EndpointHitTest {
 
     @Test
     void testNoArgsConstructor() {
-        EndpointHit hit = new EndpointHit();
+        EndpointHitDto hit = new EndpointHitDto();
 
         assertNotNull(hit);
         assertNull(hit.getApp());
@@ -158,9 +157,9 @@ class EndpointHitTest {
     @Test
     void testEqualsAndHashCode() {
         LocalDateTime timestamp = LocalDateTime.of(2022, 9, 6, 11, 0, 23);
-        EndpointHit hit1 = new EndpointHit("ewm-main-service", "/events/1", "192.163.0.1", timestamp);
-        EndpointHit hit2 = new EndpointHit("ewm-main-service", "/events/1", "192.163.0.1", timestamp);
-        EndpointHit hit3 = new EndpointHit("other-service", "/events/1", "192.163.0.1", timestamp);
+        EndpointHitDto hit1 = new EndpointHitDto("ewm-main-service", "/events/1", "192.163.0.1", timestamp);
+        EndpointHitDto hit2 = new EndpointHitDto("ewm-main-service", "/events/1", "192.163.0.1", timestamp);
+        EndpointHitDto hit3 = new EndpointHitDto("other-service", "/events/1", "192.163.0.1", timestamp);
 
         assertEquals(hit1, hit2);
         assertEquals(hit1.hashCode(), hit2.hashCode());
@@ -170,7 +169,7 @@ class EndpointHitTest {
 
     @Test
     void testToString() {
-        EndpointHit hit = new EndpointHit(
+        EndpointHitDto hit = new EndpointHitDto(
                 "ewm-main-service",
                 "/events/1",
                 "192.163.0.1",
