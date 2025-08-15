@@ -30,7 +30,7 @@ public class StatsClientImpl implements StatsClient {
     }
 
     @Override
-    public void Hit(EndpointHitDto endpointHitDto) {
+    public void hit(EndpointHitDto endpointHitDto) {
         restClient.post()
                 .uri("/hit")
                 .contentType(MediaType.APPLICATION_JSON)

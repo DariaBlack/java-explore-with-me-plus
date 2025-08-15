@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface StatsClient {
 
-    void Hit(EndpointHitDto endpointHitDto);
+    void hit(EndpointHitDto endpointHitDto);
 
     Collection<ViewStats> getStat(String start, String end, List<String> urls, Boolean unique);
 }
