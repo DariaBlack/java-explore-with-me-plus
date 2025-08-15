@@ -2,52 +2,94 @@ services:
   stats-db:
     image: postgres:16.1
     container_name: stats-db
+    environment:
+      POSTGRES_USER: stats
+      POSTGRES_PASSWORD: stats
+      POSTGRES_DB: stats
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8 --lc-collate=C --lc-ctype=C
     ports:
       - "6541:5432"
-    environment:
-      - POSTGRES_DB=stats
-      - POSTGRES_USER=stats
-      - POSTGRES_PASSWORD=stats
+    volumes:
+      - stats-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U stats"]
+      test: ["CMD-SHELL", "pg_isready -U stats -d stats"]
       interval: 5s
+      timeout: 5s
       retries: 5
-      start_period: 5s
+    networks:
+      - stats-net
 
   stats-server:
-    build: ./stats-server
-    image: stats-server
+    build:
+      context: ./stats-server
+      dockerfile: Dockerfile
+    image: stats-server:latest
     container_name: stats-server
-    ports:
-      - "9090:8080"
     depends_on:
       stats-db:
         condition: service_healthy
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stats
-      - SPRING_DATASOURCE_USERNAME=stats
-      - SPRING_DATASOURCE_PASSWORD=stats
-  ewm-service:
-    build: ./ewm-service
-    image: ewm-main-service
-    container_name: ewm-main-service
     ports:
-      - "8080:8080"
-    depends_on:
-      - ewm-db
+      - "9090:9090"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm
-      - SPRING_DATASOURCE_USERNAME=ewm
-      - SPRING_DATASOURCE_PASSWORD=ewm
-      - STATS_SERVER_URL=http://stats-server:8080
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/stats?currentSchema=public
+      SPRING_DATASOURCE_USERNAME: stats
+      SPRING_DATASOURCE_PASSWORD: stats
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_SQL_INIT_MODE: always
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+    networks:
+      - stats-net
+    restart: unless-stopped
 
   ewm-db:
     image: postgres:16.1
     container_name: ewm-db
+    environment:
+      POSTGRES_USER: ewm
+      POSTGRES_PASSWORD: ewm
+      POSTGRES_DB: ewm
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8 --lc-collate=C --lc-ctype=C
     ports:
       - "6542:5432"
+    volumes:
+      - ewm-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ewm -d ewm"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stats-net
+
+  ewm-service:
+    build:
+      context: ./ewm-service
+      dockerfile: Dockerfile
+    image: ewm-service:latest
+    container_name: ewm-service
+    depends_on:
+      ewm-db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
     environment:
-      - POSTGRES_DB=ewm
-      - POSTGRES_USER=ewm
-      - POSTGRES_PASSWORD=ewm
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ewm-db:5432/ewm?currentSchema=public
+      SPRING_DATASOURCE_USERNAME: ewm
+      SPRING_DATASOURCE_PASSWORD: ewm
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      STATS_SERVER_URL: http://stats-server:9090
+    networks:
+      - stats-net
+    restart: unless-stopped
+
+volumes:
+  stats-data:
+    driver: local
+  ewm-data:
+    driver: local
+
+networks:
+  stats-net:
+    driver: bridge
