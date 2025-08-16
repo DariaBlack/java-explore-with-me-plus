@@ -21,9 +21,9 @@ import java.util.List;
 @Slf4j
 public class StatsClientImpl implements StatsClient {
     private final RestClient restClient;
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public StatsClientImpl(@Value("http://localhost:9090") String clientUrl, RestClient restClient) {
+    public StatsClientImpl(@Value("${stats-server.url:http://localhost:9090}") String clientUrl) {
         this.restClient = RestClient.builder()
                 .baseUrl(clientUrl)
                 .build();
@@ -44,13 +44,13 @@ public class StatsClientImpl implements StatsClient {
     public Collection<ViewStats> getStat(String start, String end, List<String> urls, Boolean unique) {
         if (start == null || end == null) {
             log.warn("диапазон не может содержать null");
-            throw new NullPointerException("диапазон не может содержать null");
+            throw new IllegalArgumentException("диапазон не может содержать null");
         }
         LocalDateTime startDataTime = LocalDateTime.parse(start, formatter);
         LocalDateTime endDataTime = LocalDateTime.parse(end, formatter);
         if (startDataTime.isAfter(endDataTime)) {
             log.warn("задан не верный диапазон");
-            throw new NullPointerException("задан не верный диапазон");
+            throw new IllegalArgumentException("задан не верный диапазон");
         }
         Collection<ViewStats> stats = restClient.get()
                 .uri(uriBuilder -> uriGetStats(uriBuilder, start, end, urls, unique))
@@ -61,12 +61,12 @@ public class StatsClientImpl implements StatsClient {
         return stats;
     }
 
-    private URI uriGetStats(UriBuilder uriBuilder, String start, String end, List<String> urls, Boolean unique) {
+    private URI uriGetStats(UriBuilder uriBuilder, String start, String end, List<String> uris, Boolean unique) {
         UriBuilder builder = uriBuilder.path("/stats")
                 .queryParam("start", start)
                 .queryParam("end", end);
-        if (urls != null && !urls.isEmpty()) {
-            urls.forEach(url -> builder.queryParam("urls", url));
+        if (uris != null && !uris.isEmpty()) {
+            uris.forEach(url -> builder.queryParam("uris", url));
         }
         if (unique != null) {
             builder.queryParam("unique", unique);
