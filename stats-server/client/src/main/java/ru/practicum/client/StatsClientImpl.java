@@ -21,7 +21,7 @@ import java.util.List;
 @Slf4j
 public class StatsClientImpl implements StatsClient {
     private final RestClient restClient;
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public StatsClientImpl(@Value("${stats-server.url:http://localhost:9090}") String clientUrl) {
         this.restClient = RestClient.builder()
