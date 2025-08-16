@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -83,5 +84,23 @@ class StatsControllerTest {
         List<ViewStats> result = statsController.getStats(start, end, null, unique);
 
         assertEquals(1, result.size());
+    }
+
+    @Test
+    void getStats_withStartAfterEnd_shouldThrowIllegalArgumentException() {
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime end = LocalDateTime.now().minusDays(1); // end раньше start
+        List<String> uris = List.of("/test");
+        boolean unique = false;
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> statsController.getStats(start, end, uris, unique)
+        );
+
+        assertEquals("Дата начала должна быть раньше даты окончания", exception.getMessage());
+
+        // Проверяем, что сервис не вызывался
+        verify(statsService, never()).getStats(any(), any(), any(), anyBoolean());
     }
 }

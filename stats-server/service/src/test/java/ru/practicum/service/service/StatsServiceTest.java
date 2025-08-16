@@ -90,4 +90,53 @@ class StatsServiceTest {
         assertEquals(1, result.size());
         verify(repository).findStats(start, end, null);
     }
+
+    @Test
+    void saveHit_withFutureTimestamp_shouldThrowIllegalArgumentException() {
+        EndpointHitDto dto = new EndpointHitDto();
+        dto.setApp("test-app");
+        dto.setUri("/test");
+        dto.setIp("127.0.0.1");
+        dto.setTimestamp(LocalDateTime.now().plusHours(1)); // время в будущем
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> statsService.saveHit(dto)
+        );
+
+        assertEquals("Время запроса не может быть в будущем", exception.getMessage());
+
+        // Проверяем, что repository.save не вызывался
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void getStats_withEmptyUris_shouldPassNullToRepository() {
+        LocalDateTime start = LocalDateTime.now().minusDays(1);
+        LocalDateTime end = LocalDateTime.now();
+        List<String> emptyUris = List.of(); // пустой список
+
+        ViewStats expectedStats = new ViewStats("test-app", "/test", 15L);
+        when(repository.findStats(eq(start), eq(end), eq(null))).thenReturn(List.of(expectedStats));
+
+        List<ViewStats> result = statsService.getStats(start, end, emptyUris, false);
+
+        assertEquals(1, result.size());
+        verify(repository).findStats(start, end, null); // должен передать null вместо пустого списка
+    }
+
+    @Test
+    void getStats_withEmptyUrisAndUniqueTrue_shouldPassNullToRepository() {
+        LocalDateTime start = LocalDateTime.now().minusDays(1);
+        LocalDateTime end = LocalDateTime.now();
+        List<String> emptyUris = List.of(); // пустой список
+
+        ViewStats expectedStats = new ViewStats("test-app", "/test", 8L);
+        when(repository.findStatsUnique(eq(start), eq(end), eq(null))).thenReturn(List.of(expectedStats));
+
+        List<ViewStats> result = statsService.getStats(start, end, emptyUris, true);
+
+        assertEquals(1, result.size());
+        verify(repository).findStatsUnique(start, end, null); // должен передать null вместо пустого списка
+    }
 }
