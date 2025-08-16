@@ -1,5 +1,6 @@
 package ru.practicum.service.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,7 @@ public class StatsController {
 
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)
-    public void saveHit(@RequestBody EndpointHitDto hitDto) {
+    public void saveHit(@Valid @RequestBody EndpointHitDto hitDto) { // Добавить @Valid
         statsService.saveHit(hitDto);
     }
 
@@ -30,6 +31,9 @@ public class StatsController {
             @RequestParam(required = false) List<String> uris,
             @RequestParam(defaultValue = "false") boolean unique
     ) {
+        if (start.isAfter(end)) {
+            throw new IllegalArgumentException("Дата начала должна быть раньше даты окончания");
+        }
         return statsService.getStats(start, end, uris, unique);
     }
 }

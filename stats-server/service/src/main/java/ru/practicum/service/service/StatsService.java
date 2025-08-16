@@ -20,6 +20,11 @@ public class StatsService {
 
     @Transactional
     public void saveHit(EndpointHitDto dto) {
+
+        if (dto.getTimestamp().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Время запроса не может быть в будущем");
+        }
+
         EndpointHit hit = EndpointHit.builder()
                 .app(dto.getApp())
                 .uri(dto.getUri())
