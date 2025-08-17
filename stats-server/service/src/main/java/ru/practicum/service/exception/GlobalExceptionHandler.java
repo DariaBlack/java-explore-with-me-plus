@@ -1,5 +1,6 @@
 package ru.practicum.service.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -20,12 +22,14 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .orElse("Ошибка валидации");
 
+        log.warn("Ошибка валидации: {}", errorMessage, ex);
         return new ErrorResponse(errorMessage);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("Некорректные аргументы: {}", ex.getMessage(), ex);
         return new ErrorResponse(ex.getMessage());
     }
 
@@ -42,6 +46,7 @@ public class GlobalExceptionHandler {
                         "Запись с такими данными уже существует" :
                         "Ошибка целостности данных";
 
+        log.error("Ошибка целостности данных: {}", rootMsg, ex);
         return new ErrorResponse(userMsg);
     }
 

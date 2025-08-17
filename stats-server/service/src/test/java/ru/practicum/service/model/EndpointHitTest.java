@@ -70,40 +70,11 @@ class EndpointHitTest {
     }
 
     @Test
-    void equals_withSameId_shouldReturnTrue() {
-        EndpointHit hit1 = EndpointHit.builder().id(1L).build();
-        EndpointHit hit2 = EndpointHit.builder().id(1L).build();
-
-        assertEquals(hit1, hit2);
-        assertEquals(hit1.hashCode(), hit2.hashCode());
-    }
-
-    @Test
     void equals_withDifferentId_shouldReturnFalse() {
         EndpointHit hit1 = EndpointHit.builder().id(1L).build();
         EndpointHit hit2 = EndpointHit.builder().id(2L).build();
 
         assertNotEquals(hit1, hit2);
-    }
-
-    @Test
-    void toString_shouldContainAllFields() {
-        LocalDateTime timestamp = LocalDateTime.of(2023, 10, 15, 12, 30, 0);
-        EndpointHit hit = EndpointHit.builder()
-                .id(1L)
-                .app("ewm-main-service")
-                .uri("/events/1")
-                .ip("192.168.1.1")
-                .timestamp(timestamp)
-                .build();
-
-        String result = hit.toString();
-
-        assertTrue(result.contains("id=1"));
-        assertTrue(result.contains("app='ewm-main-service'"));
-        assertTrue(result.contains("uri='/events/1'"));
-        assertTrue(result.contains("ip='192.168.1.1'"));
-        assertTrue(result.startsWith("EndpointHit{"));
     }
 
     @Test
@@ -127,15 +98,6 @@ class EndpointHitTest {
         EndpointHit hit2 = EndpointHit.builder().id(1L).build();
 
         assertNotEquals(hit1, hit2);
-    }
-
-    @Test
-    void equals_withBothNullId_shouldReturnTrue() {
-        EndpointHit hit1 = EndpointHit.builder().id(null).build();
-        EndpointHit hit2 = EndpointHit.builder().id(null).build();
-
-        assertEquals(hit1, hit2);
-        assertEquals(hit1.hashCode(), hit2.hashCode());
     }
 
     @Test
