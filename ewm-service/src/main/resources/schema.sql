@@ -35,8 +35,6 @@ CREATE TABLE IF NOT EXISTS events (
     request_moderation BOOLEAN NOT NULL DEFAULT TRUE,
     state VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     title VARCHAR(120) NOT NULL,
-    views BIGINT DEFAULT 0,
-    confirmed_requests INTEGER DEFAULT 0,
     CONSTRAINT pk_events PRIMARY KEY (id),
     CONSTRAINT fk_events_category FOREIGN KEY (category_id) REFERENCES categories (id),
     CONSTRAINT fk_events_initiator FOREIGN KEY (initiator_id) REFERENCES users (id),
@@ -69,3 +67,11 @@ CREATE TABLE IF NOT EXISTS compilation_events (
     CONSTRAINT fk_compilation_events_compilation FOREIGN KEY (compilation_id) REFERENCES compilations (id) ON DELETE CASCADE,
     CONSTRAINT fk_compilation_events_event FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS idx_events_category_id ON events (category_id);
+CREATE INDEX IF NOT EXISTS idx_events_initiator_id ON events (initiator_id);
+CREATE INDEX IF NOT EXISTS idx_events_state ON events (state);
+CREATE INDEX IF NOT EXISTS idx_events_event_date ON events (event_date);
+CREATE INDEX IF NOT EXISTS idx_requests_event_id ON requests (event_id);
+CREATE INDEX IF NOT EXISTS idx_requests_requester_id ON requests (requester_id);
+CREATE INDEX IF NOT EXISTS idx_requests_status ON requests (status);
