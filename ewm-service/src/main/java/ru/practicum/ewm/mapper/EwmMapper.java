@@ -1,0 +1,157 @@
+package ru.practicum.ewm.mapper;
+
+import org.springframework.stereotype.Component;
+import ru.practicum.ewm.category.dto.CategoryDto;
+import ru.practicum.ewm.category.dto.NewCategoryDto;
+import ru.practicum.ewm.category.model.Category;
+import ru.practicum.ewm.compilation.dto.CompilationDto;
+import ru.practicum.ewm.compilation.dto.NewCompilationDto;
+import ru.practicum.ewm.compilation.model.Compilation;
+import ru.practicum.ewm.event.dto.EventFullDto;
+import ru.practicum.ewm.event.dto.EventShortDto;
+import ru.practicum.ewm.event.model.Event;
+import ru.practicum.ewm.location.dto.LocationDto;
+import ru.practicum.ewm.location.model.Location;
+import ru.practicum.ewm.user.dto.NewUserRequest;
+import ru.practicum.ewm.user.dto.UserDto;
+import ru.practicum.ewm.user.dto.UserShortDto;
+import ru.practicum.ewm.user.model.User;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Component
+public class EwmMapper {
+
+    // Маппинг пользователей
+    public User toUser(NewUserRequest dto) {
+        return User.builder()
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .build();
+    }
+
+    public UserDto toUserDto(User user) {
+        return new UserDto(user.getId(), user.getName(), user.getEmail());
+    }
+
+    public UserShortDto toUserShortDto(User user) {
+        return new UserShortDto(user.getId(), user.getName());
+    }
+
+    // Маппинг категорий
+    public Category toCategory(NewCategoryDto dto) {
+        return Category.builder()
+                .name(dto.getName())
+                .build();
+    }
+
+    public CategoryDto toCategoryDto(Category category) {
+        return new CategoryDto(category.getId(), category.getName());
+    }
+
+    // Маппинг локаций
+    public Location toLocation(LocationDto dto) {
+        return Location.builder()
+                .lat(dto.getLat())
+                .lon(dto.getLon())
+                .build();
+    }
+
+    public LocationDto toLocationDto(Location location) {
+        return new LocationDto(location.getLat(), location.getLon());
+    }
+
+    // Маппинг событий
+    public EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views) {
+        return new EventFullDto(
+                event.getId(),
+                event.getAnnotation(),
+                toCategoryDto(event.getCategory()),
+                confirmedRequests,
+                event.getCreatedOn(),
+                event.getDescription(),
+                event.getEventDate(),
+                toUserShortDto(event.getInitiator()),
+                toLocationDto(event.getLocation()),
+                event.getPaid(),
+                event.getParticipantLimit(),
+                event.getPublishedOn(),
+                event.getRequestModeration(),
+                event.getState(),
+                event.getTitle(),
+                views
+        );
+    }
+
+    public EventShortDto toEventShortDto(Event event, Long confirmedRequests, Long views) {
+        return new EventShortDto(
+                event.getId(),
+                event.getAnnotation(),
+                toCategoryDto(event.getCategory()),
+                confirmedRequests,
+                event.getEventDate(),
+                toUserShortDto(event.getInitiator()),
+                event.getPaid(),
+                event.getTitle(),
+                views
+        );
+    }
+
+    public List<EventShortDto> toEventShortDtoList(List<Event> events,
+                                                   Map<Long, Long> confirmedRequestsMap,
+                                                   Map<Long, Long> viewsMap) {
+        return events.stream()
+                .map(event -> toEventShortDto(
+                        event,
+                        confirmedRequestsMap.getOrDefault(event.getId(), 0L),
+                        viewsMap.getOrDefault(event.getId(), 0L)
+                ))
+                .collect(Collectors.toList());
+    }
+
+    // Маппинг подборок
+    public Compilation toCompilation(NewCompilationDto dto) {
+        return Compilation.builder()
+                .pinned(dto.getPinned())
+                .title(dto.getTitle())
+                .build();
+    }
+
+    public CompilationDto toCompilationDto(Compilation compilation,
+                                           Map<Long, Long> confirmedRequestsMap,
+                                           Map<Long, Long> viewsMap) {
+        List<EventShortDto> eventDtos = compilation.getEvents() != null ?
+                compilation.getEvents().stream()
+                        .map(event -> toEventShortDto(
+                                event,
+                                confirmedRequestsMap.getOrDefault(event.getId(), 0L),
+                                viewsMap.getOrDefault(event.getId(), 0L)
+                        ))
+                        .collect(Collectors.toList()) :
+                List.of();
+
+        return new CompilationDto(
+                compilation.getId(),
+                eventDtos,
+                compilation.getPinned(),
+                compilation.getTitle()
+        );
+    }
+
+    public CompilationDto toCompilationDto(Compilation compilation) {
+        List<EventShortDto> eventDtos = compilation.getEvents() != null ?
+                compilation.getEvents().stream()
+                        .map(event -> toEventShortDto(event, 0L, 0L))
+                        .collect(Collectors.toList()) :
+                List.of();
+
+        return new CompilationDto(
+                compilation.getId(),
+                eventDtos,
+                compilation.getPinned(),
+                compilation.getTitle()
+        );
+    }
+}
