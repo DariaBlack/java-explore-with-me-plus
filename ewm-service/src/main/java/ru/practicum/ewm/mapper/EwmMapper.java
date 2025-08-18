@@ -95,7 +95,8 @@ public class EwmMapper {
                 toUserShortDto(event.getInitiator()),
                 event.getPaid(),
                 event.getTitle(),
-                views
+                views,
+                event.getParticipantLimit()
         );
     }
 
@@ -152,6 +153,42 @@ public class EwmMapper {
                 eventDtos,
                 compilation.getPinned(),
                 compilation.getTitle()
+        );
+    }
+
+    public EventShortDto toEventShortDto(Event event) {
+        return new EventShortDto(
+                event.getId(),
+                event.getAnnotation(),
+                toCategoryDto(event.getCategory()),
+                0L, // будет установлено в сервисе
+                event.getEventDate(),
+                toUserShortDto(event.getInitiator()),
+                event.getPaid(),
+                event.getTitle(),
+                0L, // будет установлено в сервисе
+                event.getParticipantLimit()
+        );
+    }
+
+    public EventFullDto toEventFullDto(Event event) {
+        return new EventFullDto(
+                event.getId(),
+                event.getAnnotation(),
+                toCategoryDto(event.getCategory()),
+                0L, // будет установлено в сервисе
+                event.getCreatedOn(),
+                event.getDescription(),
+                event.getEventDate(),
+                toUserShortDto(event.getInitiator()),
+                toLocationDto(event.getLocation()),
+                event.getPaid(),
+                event.getParticipantLimit(),
+                event.getPublishedOn(),
+                event.getRequestModeration(),
+                event.getState(),
+                event.getTitle(),
+                0L // будет установлено в сервисе
         );
     }
 }
