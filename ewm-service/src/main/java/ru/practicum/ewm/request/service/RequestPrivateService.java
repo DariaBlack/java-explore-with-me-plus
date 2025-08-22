@@ -67,7 +67,13 @@ public class RequestPrivateService {
             throw new ConflictException("Лимит участников исчерпан");
         }
 
-        RequestStatus status = event.getRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED;
+        RequestStatus status;
+        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
+            status = RequestStatus.CONFIRMED;
+        } else {
+            status = RequestStatus.PENDING;
+        }
+
         ParticipationRequest request = ParticipationRequest.builder()
                 .event(event)
                 .requester(user)

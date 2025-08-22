@@ -19,7 +19,6 @@ import ru.practicum.ewm.exception.ValidationException;
 import ru.practicum.ewm.location.service.LocationService;
 import ru.practicum.ewm.mapper.EwmMapper;
 import ru.practicum.ewm.request.repository.ParticipationRequestRepository;
-import ru.practicum.ewm.request.model.RequestStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -141,23 +140,20 @@ public class EventAdminService {
     }
 
     private EventFullDto convertToEventFullDto(Event event) {
-        Long confirmedRequests = requestRepository.findAllByEventId(event.getId())
-                .stream()
-                .filter(request -> request.getStatus() == RequestStatus.CONFIRMED)
-                .count();
-
-        return mapper.toEventFullDto(event, confirmedRequests, 0L); // views пока 0
+        Long confirmedRequests = requestRepository.countConfirmedRequestsByEventId(event.getId());
+        return mapper.toEventFullDto(event, confirmedRequests, 0L);
     }
 
     private List<EventFullDto> convertToEventFullDtoList(List<Event> events) {
-        Map<Long, Long> confirmedRequestsMap = events.stream()
-                .collect(Collectors.toMap(
-                        Event::getId,
-                        event -> requestRepository.findAllByEventId(event.getId())
-                                .stream()
-                                .filter(request -> request.getStatus() == RequestStatus.CONFIRMED)
-                                .count()
-                ));
+        if (events.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsMap(eventIds);
 
         return events.stream()
                 .map(event -> mapper.toEventFullDto(
@@ -166,5 +162,14 @@ public class EventAdminService {
                         0L // views пока 0
                 ))
                 .collect(Collectors.toList());
+    }
+
+    private Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
+        List<Object[]> results = requestRepository.countConfirmedRequestsByEventIds(eventIds);
+        return results.stream()
+                .collect(Collectors.toMap(
+                        result -> (Long) result[0],
+                        result -> (Long) result[1]
+                ));
     }
 }
