@@ -195,6 +195,7 @@ public class EwmMapper {
                 0L // будет установлено в сервисе
         );
     }
+
     // Маппинг новых событий
     public Event toEvent(NewEventDto dto, Category category, Location location, User initiator) {
         return Event.builder()
