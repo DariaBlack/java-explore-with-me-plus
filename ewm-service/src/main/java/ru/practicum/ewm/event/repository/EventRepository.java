@@ -47,9 +47,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     // События пользователя
     Page<Event> findAllByInitiatorId(Long initiatorId, Pageable pageable);
 
-    // Событие пользователя по ID
-    Optional<Event> findByIdAndInitiatorId(Long eventId, Long initiatorId);
-
     // Опубликованное событие по ID
     Optional<Event> findByIdAndState(Long id, EventState state);
 
