@@ -12,10 +12,14 @@ import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.location.dto.LocationDto;
 import ru.practicum.ewm.location.model.Location;
+import ru.practicum.ewm.request.dto.ParticipationRequestResponse;
 import ru.practicum.ewm.user.dto.NewUserRequest;
 import ru.practicum.ewm.user.dto.UserDto;
 import ru.practicum.ewm.user.dto.UserShortDto;
 import ru.practicum.ewm.user.model.User;
+import ru.practicum.ewm.event.dto.NewEventDto;
+import ru.practicum.ewm.request.dto.ParticipationRequestDto;
+import ru.practicum.ewm.request.model.ParticipationRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -190,5 +194,44 @@ public class EwmMapper {
                 event.getTitle(),
                 0L // будет установлено в сервисе
         );
+    }
+
+    // Маппинг новых событий
+    public Event toEvent(NewEventDto dto, Category category, Location location, User initiator) {
+        return Event.builder()
+                .annotation(dto.getAnnotation())
+                .category(category)
+                .description(dto.getDescription())
+                .eventDate(dto.getEventDate())
+                .location(location)
+                .paid(dto.getPaid() != null ? dto.getPaid() : false)
+                .participantLimit(dto.getParticipantLimit() != null ? dto.getParticipantLimit() : 0)
+                .requestModeration(dto.getRequestModeration() != null ? dto.getRequestModeration() : true)
+                .title(dto.getTitle())
+                .initiator(initiator)
+                .build();
+    }
+
+    // Маппинг запросов на участие
+    public ParticipationRequestDto toParticipationRequestDto(ParticipationRequest request) {
+        return ParticipationRequestDto.builder()
+                .id(request.getId())
+                .event(request.getEvent().getId())
+                .requester(request.getRequester().getId())
+                .created(request.getCreated())
+                .status(request.getStatus().name())
+                .build();
+    }
+
+    public ParticipationRequestResponse toParticipationRequestResponse(ParticipationRequest request) {
+        if (request == null) return null;
+
+        ParticipationRequestResponse response = new ParticipationRequestResponse();
+        response.setId(request.getId());
+        response.setEvent(request.getEvent().getId());
+        response.setRequester(request.getRequester().getId());
+        response.setCreated(request.getCreated());
+        response.setStatus(request.getStatus().name());
+        return response;
     }
 }
