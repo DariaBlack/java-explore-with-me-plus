@@ -74,8 +74,6 @@ public class CategoryService {
     public void deleteCategory(Long catId) {
         log.info("Удаление категории с ID: {}", catId);
 
-        Category category = getCategoryById(catId);
-
         if (eventRepository.existsByCategoryId(catId)) {
             throw new ConflictException("Нельзя удалить категорию, связанную с событиями");
         }

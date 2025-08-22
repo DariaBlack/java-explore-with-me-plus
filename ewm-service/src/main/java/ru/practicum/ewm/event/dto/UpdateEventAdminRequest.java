@@ -25,7 +25,6 @@ public class UpdateEventAdminRequest {
     private String description;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    //@Future(message = "Дата события должна быть в будущем") - оставить только проверку в сервисе (?)
     private LocalDateTime eventDate;
 
     private LocationDto location;

@@ -22,7 +22,6 @@ import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 import ru.practicum.ewm.request.model.ParticipationRequest;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -104,45 +103,12 @@ public class EwmMapper {
         );
     }
 
-    public List<EventShortDto> toEventShortDtoList(List<Event> events,
-                                                   Map<Long, Long> confirmedRequestsMap,
-                                                   Map<Long, Long> viewsMap) {
-        return events.stream()
-                .map(event -> toEventShortDto(
-                        event,
-                        confirmedRequestsMap.getOrDefault(event.getId(), 0L),
-                        viewsMap.getOrDefault(event.getId(), 0L)
-                ))
-                .collect(Collectors.toList());
-    }
-
     // Маппинг подборок
     public Compilation toCompilation(NewCompilationDto dto) {
         return Compilation.builder()
                 .pinned(dto.getPinned())
                 .title(dto.getTitle())
                 .build();
-    }
-
-    public CompilationDto toCompilationDto(Compilation compilation,
-                                           Map<Long, Long> confirmedRequestsMap,
-                                           Map<Long, Long> viewsMap) {
-        List<EventShortDto> eventDtos = compilation.getEvents() != null ?
-                compilation.getEvents().stream()
-                        .map(event -> toEventShortDto(
-                                event,
-                                confirmedRequestsMap.getOrDefault(event.getId(), 0L),
-                                viewsMap.getOrDefault(event.getId(), 0L)
-                        ))
-                        .collect(Collectors.toList()) :
-                List.of();
-
-        return new CompilationDto(
-                compilation.getId(),
-                eventDtos,
-                compilation.getPinned(),
-                compilation.getTitle()
-        );
     }
 
     public CompilationDto toCompilationDto(Compilation compilation) {

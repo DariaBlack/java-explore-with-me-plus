@@ -6,24 +6,17 @@ import org.springframework.data.repository.query.Param;
 import ru.practicum.ewm.request.model.ParticipationRequest;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
 
     // Запросы пользователя
     List<ParticipationRequest> findAllByRequesterId(Long requesterId);
 
-    // Запросы на событие
-    List<ParticipationRequest> findAllByEventId(Long eventId);
-
     // Запросы на событие пользователя
     List<ParticipationRequest> findAllByEventIdAndEventInitiatorId(Long eventId, Long initiatorId);
 
     // Проверка существования запроса
     boolean existsByRequesterIdAndEventId(Long requesterId, Long eventId);
-
-    // Запрос пользователя по ID
-    Optional<ParticipationRequest> findByIdAndRequesterId(Long requestId, Long requesterId);
 
     // Подсчет подтвержденных запросов для события
     @Query("SELECT COUNT(pr) FROM ParticipationRequest pr " +
