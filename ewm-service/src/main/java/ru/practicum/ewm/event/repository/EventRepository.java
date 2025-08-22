@@ -30,16 +30,16 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     // Для публичного API - поиск опубликованных событий
     @Query("""
-    SELECT e FROM Event e
-    WHERE e.state = 'PUBLISHED'
-      AND (:text IS NULL OR :text = '' 
-           OR LOWER(e.annotation) LIKE CONCAT('%', LOWER(:text), '%')
-           OR LOWER(e.description) LIKE CONCAT('%', LOWER(:text), '%'))
-      AND (:categories IS NULL OR e.category.id IN :categories)
-      AND (:paid IS NULL OR e.paid = :paid)
-      AND (e.eventDate >= :rangeStart)
-      AND (e.eventDate <= :rangeEnd)
-""")
+                SELECT e FROM Event e
+                WHERE e.state = 'PUBLISHED'
+                  AND (:text IS NULL OR :text = '' 
+                       OR LOWER(e.annotation) LIKE CONCAT('%', LOWER(:text), '%')
+                       OR LOWER(e.description) LIKE CONCAT('%', LOWER(:text), '%'))
+                  AND (:categories IS NULL OR e.category.id IN :categories)
+                  AND (:paid IS NULL OR e.paid = :paid)
+                  AND (e.eventDate >= :rangeStart)
+                  AND (e.eventDate <= :rangeEnd)
+            """)
     Page<Event> findPublishedEvents(@Param("text") String text,
                                     @Param("categories") List<Long> categories,
                                     @Param("paid") Boolean paid,
