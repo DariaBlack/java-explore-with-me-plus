@@ -101,7 +101,6 @@ public class RequestPrivateService {
         return mapper.toParticipationRequestDto(saved);
     }
 
-    @Transactional
     public List<ParticipationRequestDto> getRequestsForUserEvent(Long userId, Long eventId) {
         log.info("Получение заявок для события userId={}, eventId={}", userId, eventId);
 
