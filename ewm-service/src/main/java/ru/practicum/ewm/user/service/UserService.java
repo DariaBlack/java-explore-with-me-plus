@@ -68,9 +68,4 @@ public class UserService {
         userRepository.deleteById(userId);
         log.info("Пользователь с ID {} удален", userId);
     }
-
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + userId + " не найден"));
-    }
 }
