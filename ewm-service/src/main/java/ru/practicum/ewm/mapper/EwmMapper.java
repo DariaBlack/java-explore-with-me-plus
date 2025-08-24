@@ -208,26 +208,27 @@ public class EwmMapper {
 
     // Маппинг комментариев
 
-    public CommentDto commentDto(Comment comment) {
+    public CommentDto toCommentDto(Comment comment) {
         return new CommentDto(
                 comment.getId(),
                 comment.getText(),
-                toEventShortDto(comment.getEvent()),
+                toUserShortDto(comment.getAuthor()),
+                comment.getEvent().getId(),
                 comment.getCreatedOn(),
                 comment.getUpdatedOn()
         );
     }
 
-    public CommentShortDto commentShortDto(Comment comment) {
-        return new CommentShortDto(
-                comment.getId(),
-                comment.getText(),
-                toUserShortDto(comment.getAuthor()),
-                comment.getCreatedOn()
-        );
+    public CommentShortDto toCommentShortDto(Comment comment) {
+        return CommentShortDto.builder()
+                .id(comment.getId())
+                .text(comment.getText())
+                .authorName(comment.getAuthor().getName())
+                .createdOn(comment.getCreatedOn())
+                .build();
     }
 
-    public Comment comment(NewCommentDto newCommentDto, Event event, User author) {
+    public Comment toComment(NewCommentDto newCommentDto, Event event, User author) {
         return Comment.builder()
                 .text(newCommentDto.getText())
                 .event(event)

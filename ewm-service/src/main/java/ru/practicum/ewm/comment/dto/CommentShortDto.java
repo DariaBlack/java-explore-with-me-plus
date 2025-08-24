@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.ewm.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
 
@@ -16,9 +15,9 @@ import java.time.LocalDateTime;
 public class CommentShortDto {
     private Long id;
     private String text;
-    private UserShortDto authorName;
+    private String authorName;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime createOn;
+    private LocalDateTime createdOn;
 }
 
