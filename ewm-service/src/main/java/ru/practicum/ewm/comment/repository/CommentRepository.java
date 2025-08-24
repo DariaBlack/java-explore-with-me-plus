@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.ewm.comment.model.Comment;
 
+import java.util.List;
+
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
@@ -24,5 +26,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("SELECT COUNT(c) FROM Comment c WHERE c.event.id = :eventId")
     Long countByEventId(@Param("eventId") Long eventId);
 
-    boolean existsByIdAndAuthorId(Long id, Long authorId);
+    @Query("SELECT c.event.id, COUNT(c) FROM Comment c WHERE c.event.id IN :eventIds GROUP BY c.event.id")
+    List<Object[]> countCommentsByEventIds(@Param("eventIds") List<Long> eventIds);
 }

@@ -72,7 +72,7 @@ public class EwmMapper {
     }
 
     // Маппинг событий
-    public EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views) {
+    public EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views, Long commentCount) {
         return new EventFullDto(
                 event.getId(),
                 event.getAnnotation(),
@@ -89,11 +89,12 @@ public class EwmMapper {
                 event.getRequestModeration(),
                 event.getState(),
                 event.getTitle(),
-                views
+                views,
+                commentCount
         );
     }
 
-    public EventShortDto toEventShortDto(Event event, Long confirmedRequests, Long views) {
+    public EventShortDto toEventShortDto(Event event, Long confirmedRequests, Long views, Long commentCount) {
         return new EventShortDto(
                 event.getId(),
                 event.getAnnotation(),
@@ -104,7 +105,8 @@ public class EwmMapper {
                 event.getPaid(),
                 event.getTitle(),
                 views,
-                event.getParticipantLimit()
+                event.getParticipantLimit(),
+                commentCount
         );
     }
 
@@ -119,7 +121,7 @@ public class EwmMapper {
     public CompilationDto toCompilationDto(Compilation compilation) {
         List<EventShortDto> eventDtos = compilation.getEvents() != null ?
                 compilation.getEvents().stream()
-                        .map(event -> toEventShortDto(event, 0L, 0L))
+                        .map(event -> toEventShortDto(event, 0L, 0L, 0L))
                         .collect(Collectors.toList()) :
                 List.of();
 
@@ -142,7 +144,8 @@ public class EwmMapper {
                 event.getPaid(),
                 event.getTitle(),
                 0L, // будет установлено в сервисе
-                event.getParticipantLimit()
+                event.getParticipantLimit(),
+                0L // будет установлено в сервисе
         );
     }
 
@@ -163,7 +166,8 @@ public class EwmMapper {
                 event.getRequestModeration(),
                 event.getState(),
                 event.getTitle(),
-                0L // будет установлено в сервисе
+                0L, // будет установлено в сервисе (views)
+                0L  // будет установлено в сервисе (commentsCount)
         );
     }
 
