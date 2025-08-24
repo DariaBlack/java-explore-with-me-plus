@@ -4,6 +4,10 @@ import org.springframework.stereotype.Component;
 import ru.practicum.ewm.category.dto.CategoryDto;
 import ru.practicum.ewm.category.dto.NewCategoryDto;
 import ru.practicum.ewm.category.model.Category;
+import ru.practicum.ewm.comment.dto.CommentDto;
+import ru.practicum.ewm.comment.dto.CommentShortDto;
+import ru.practicum.ewm.comment.dto.NewCommentDto;
+import ru.practicum.ewm.comment.model.Comment;
 import ru.practicum.ewm.compilation.dto.CompilationDto;
 import ru.practicum.ewm.compilation.dto.NewCompilationDto;
 import ru.practicum.ewm.compilation.model.Compilation;
@@ -21,6 +25,7 @@ import ru.practicum.ewm.event.dto.NewEventDto;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 import ru.practicum.ewm.request.model.ParticipationRequest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -200,4 +205,35 @@ public class EwmMapper {
         response.setStatus(request.getStatus().name());
         return response;
     }
+
+    // Маппинг комментариев
+
+    public CommentDto commentDto(Comment comment) {
+        return new CommentDto(
+                comment.getId(),
+                comment.getText(),
+                toEventShortDto(comment.getEvent()),
+                comment.getCreatedOn(),
+                comment.getUpdatedOn()
+        );
+    }
+
+    public CommentShortDto commentShortDto(Comment comment) {
+        return new CommentShortDto(
+                comment.getId(),
+                comment.getText(),
+                toUserShortDto(comment.getAuthor()),
+                comment.getCreatedOn()
+        );
+    }
+
+    public Comment comment(NewCommentDto newCommentDto, Event event, User author) {
+        return Comment.builder()
+                .text(newCommentDto.getText())
+                .event(event)
+                .author(author)
+                .createdOn(LocalDateTime.now())
+                .build();
+    }
+
 }
