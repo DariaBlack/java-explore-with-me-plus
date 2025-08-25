@@ -10,8 +10,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.client.StatsClient;
+import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStats;
 import ru.practicum.ewm.category.model.Category;
+import ru.practicum.ewm.comment.repository.CommentRepository;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventSearchParams;
 import ru.practicum.ewm.event.dto.EventShortDto;
@@ -42,6 +44,9 @@ class EventPublicServiceTest {
 
     @Mock
     private ParticipationRequestRepository requestRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
 
     @Mock
     private StatsClient statsClient;
@@ -94,12 +99,14 @@ class EventPublicServiceTest {
         testEventShortDto.setTitle("Test Event");
         testEventShortDto.setViews(0L);
         testEventShortDto.setConfirmedRequests(0L);
+        testEventShortDto.setCommentsCount(0L);
 
         testEventFullDto = new EventFullDto();
         testEventFullDto.setId(1L);
         testEventFullDto.setTitle("Test Event");
         testEventFullDto.setViews(0L);
         testEventFullDto.setConfirmedRequests(0L);
+        testEventFullDto.setCommentsCount(0L);
 
         testParams = new EventSearchParams();
         testParams.setFrom(0);
@@ -125,10 +132,12 @@ class EventPublicServiceTest {
         EventShortDto event1 = new EventShortDto();
         event1.setId(1L);
         event1.setViews(5L);
+        event1.setCommentsCount(0L);
 
         EventShortDto event2 = new EventShortDto();
         event2.setId(2L);
         event2.setViews(10L);
+        event2.setCommentsCount(0L);
 
         Event testEvent2 = Event.builder()
                 .id(2L)
@@ -149,6 +158,8 @@ class EventPublicServiceTest {
         when(mapper.toEventShortDto(testEvent2)).thenReturn(event2);
         when(requestRepository.countConfirmedRequestsByEventIds(anyList()))
                 .thenReturn(List.of(new Object[]{1L, 0L}, new Object[]{2L, 0L}));
+        when(commentRepository.countCommentsByEventIds(anyList()))
+                .thenReturn(List.of(new Object[]{1L, 0L}, new Object[]{2L, 0L}));
 
         ViewStats stats1 = new ViewStats("ewm-main-service", "/events/1", 5L);
         ViewStats stats2 = new ViewStats("ewm-main-service", "/events/2", 10L);
@@ -160,6 +171,7 @@ class EventPublicServiceTest {
         assertNotNull(result);
         assertEquals(2, result.size());
         assertTrue(result.get(0).getViews() <= result.get(1).getViews());
+        verify(statsClient).hit(any(EndpointHitDto.class));
     }
 
     @Test
@@ -172,5 +184,70 @@ class EventPublicServiceTest {
 
         assertEquals("Событие с ID 999 не найдено", exception.getMessage());
         verify(statsClient, never()).hit(any());
+    }
+
+    @Test
+    void getEvents_WithOnlyAvailable_ShouldFilterByAvailability() {
+        testParams.setOnlyAvailable(true);
+
+        Event eventWithLimit = Event.builder()
+                .id(1L)
+                .title("Event with limit")
+                .annotation("Test annotation")
+                .category(testEvent.getCategory())
+                .initiator(testEvent.getInitiator())
+                .location(testEvent.getLocation())
+                .eventDate(LocalDateTime.now().plusDays(1))
+                .createdOn(LocalDateTime.now())
+                .state(EventState.PUBLISHED)
+                .participantLimit(5)
+                .build();
+
+        Event eventWithoutLimit = Event.builder()
+                .id(2L)
+                .title("Event without limit")
+                .annotation("Test annotation")
+                .category(testEvent.getCategory())
+                .initiator(testEvent.getInitiator())
+                .location(testEvent.getLocation())
+                .eventDate(LocalDateTime.now().plusDays(1))
+                .createdOn(LocalDateTime.now())
+                .state(EventState.PUBLISHED)
+                .participantLimit(0)
+                .build();
+
+        Page<Event> eventPage = new PageImpl<>(List.of(eventWithLimit, eventWithoutLimit));
+        when(eventRepository.findPublishedEvents(any(), any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(eventPage);
+
+        // Событие с лимитом 5 и 3 подтвержденными заявками - доступно
+        // Событие без лимита - всегда доступно
+        when(requestRepository.countConfirmedRequestsByEventIds(anyList()))
+                .thenReturn(List.of(new Object[]{1L, 3L}, new Object[]{2L, 0L}));
+        when(commentRepository.countCommentsByEventIds(anyList()))
+                .thenReturn(List.of(new Object[]{1L, 0L}, new Object[]{2L, 0L}));
+
+        EventShortDto dto1 = new EventShortDto();
+        dto1.setId(1L);
+        dto1.setViews(0L);
+        dto1.setConfirmedRequests(3L);
+        dto1.setCommentsCount(0L);
+
+        EventShortDto dto2 = new EventShortDto();
+        dto2.setId(2L);
+        dto2.setViews(0L);
+        dto2.setConfirmedRequests(0L);
+        dto2.setCommentsCount(0L);
+
+        when(mapper.toEventShortDto(eventWithLimit)).thenReturn(dto1);
+        when(mapper.toEventShortDto(eventWithoutLimit)).thenReturn(dto2);
+        when(statsClient.getStat(anyString(), anyString(), anyList(), anyBoolean()))
+                .thenReturn(List.of());
+
+        List<EventShortDto> result = eventPublicService.getEvents(testParams, "127.0.0.1", "/events");
+
+        assertNotNull(result);
+        assertEquals(2, result.size()); // Оба события доступны
+        verify(statsClient).hit(any(EndpointHitDto.class));
     }
 }

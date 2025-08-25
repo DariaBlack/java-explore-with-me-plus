@@ -4,6 +4,10 @@ import org.springframework.stereotype.Component;
 import ru.practicum.ewm.category.dto.CategoryDto;
 import ru.practicum.ewm.category.dto.NewCategoryDto;
 import ru.practicum.ewm.category.model.Category;
+import ru.practicum.ewm.comment.dto.CommentDto;
+import ru.practicum.ewm.comment.dto.CommentShortDto;
+import ru.practicum.ewm.comment.dto.NewCommentDto;
+import ru.practicum.ewm.comment.model.Comment;
 import ru.practicum.ewm.compilation.dto.CompilationDto;
 import ru.practicum.ewm.compilation.dto.NewCompilationDto;
 import ru.practicum.ewm.compilation.model.Compilation;
@@ -21,6 +25,7 @@ import ru.practicum.ewm.event.dto.NewEventDto;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 import ru.practicum.ewm.request.model.ParticipationRequest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,7 +72,7 @@ public class EwmMapper {
     }
 
     // Маппинг событий
-    public EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views) {
+    public EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views, Long commentCount) {
         return new EventFullDto(
                 event.getId(),
                 event.getAnnotation(),
@@ -84,11 +89,12 @@ public class EwmMapper {
                 event.getRequestModeration(),
                 event.getState(),
                 event.getTitle(),
-                views
+                views,
+                commentCount
         );
     }
 
-    public EventShortDto toEventShortDto(Event event, Long confirmedRequests, Long views) {
+    public EventShortDto toEventShortDto(Event event, Long confirmedRequests, Long views, Long commentCount) {
         return new EventShortDto(
                 event.getId(),
                 event.getAnnotation(),
@@ -99,7 +105,8 @@ public class EwmMapper {
                 event.getPaid(),
                 event.getTitle(),
                 views,
-                event.getParticipantLimit()
+                event.getParticipantLimit(),
+                commentCount
         );
     }
 
@@ -114,7 +121,7 @@ public class EwmMapper {
     public CompilationDto toCompilationDto(Compilation compilation) {
         List<EventShortDto> eventDtos = compilation.getEvents() != null ?
                 compilation.getEvents().stream()
-                        .map(event -> toEventShortDto(event, 0L, 0L))
+                        .map(event -> toEventShortDto(event, 0L, 0L, 0L))
                         .collect(Collectors.toList()) :
                 List.of();
 
@@ -137,7 +144,8 @@ public class EwmMapper {
                 event.getPaid(),
                 event.getTitle(),
                 0L, // будет установлено в сервисе
-                event.getParticipantLimit()
+                event.getParticipantLimit(),
+                0L // будет установлено в сервисе
         );
     }
 
@@ -158,7 +166,8 @@ public class EwmMapper {
                 event.getRequestModeration(),
                 event.getState(),
                 event.getTitle(),
-                0L // будет установлено в сервисе
+                0L, // будет установлено в сервисе (views)
+                0L  // будет установлено в сервисе (commentsCount)
         );
     }
 
@@ -200,4 +209,36 @@ public class EwmMapper {
         response.setStatus(request.getStatus().name());
         return response;
     }
+
+    // Маппинг комментариев
+
+    public CommentDto toCommentDto(Comment comment) {
+        return new CommentDto(
+                comment.getId(),
+                comment.getText(),
+                toUserShortDto(comment.getAuthor()),
+                comment.getEvent().getId(),
+                comment.getCreatedOn(),
+                comment.getUpdatedOn()
+        );
+    }
+
+    public CommentShortDto toCommentShortDto(Comment comment) {
+        return CommentShortDto.builder()
+                .id(comment.getId())
+                .text(comment.getText())
+                .authorName(comment.getAuthor().getName())
+                .createdOn(comment.getCreatedOn())
+                .build();
+    }
+
+    public Comment toComment(NewCommentDto newCommentDto, Event event, User author) {
+        return Comment.builder()
+                .text(newCommentDto.getText())
+                .event(event)
+                .author(author)
+                .createdOn(LocalDateTime.now())
+                .build();
+    }
+
 }

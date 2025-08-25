@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStats;
+import ru.practicum.ewm.comment.repository.CommentRepository;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventSearchParams;
 import ru.practicum.ewm.event.dto.EventShortDto;
@@ -38,6 +39,7 @@ public class EventPublicService {
 
     private final EventRepository eventRepository;
     private final ParticipationRequestRepository requestRepository;
+    private final CommentRepository commentRepository;
     private final StatsClient statsClient;
     private final EwmMapper mapper;
 
@@ -139,11 +141,15 @@ public class EventPublicService {
         // Получение количества подтвержденных заявок
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsMap(eventIds);
 
+        // Получение количества комментариев
+        Map<Long, Long> commentsCountMap = getCommentsCountMap(eventIds);
+
         return events.stream()
                 .map(event -> {
                     EventShortDto dto = mapper.toEventShortDto(event);
                     dto.setViews(viewsMap.getOrDefault(event.getId(), 0L));
                     dto.setConfirmedRequests(confirmedRequestsMap.getOrDefault(event.getId(), 0L));
+                    dto.setCommentsCount(commentsCountMap.getOrDefault(event.getId(), 0L));
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -159,6 +165,10 @@ public class EventPublicService {
         // Получение количества подтвержденных заявок
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsMap(List.of(event.getId()));
         dto.setConfirmedRequests(confirmedRequestsMap.getOrDefault(event.getId(), 0L));
+
+        // Получение количества комментариев
+        Map<Long, Long> commentsCountMap = getCommentsCountMap(List.of(event.getId()));
+        dto.setCommentsCount(commentsCountMap.getOrDefault(event.getId(), 0L));
 
         return dto;
     }
@@ -199,6 +209,19 @@ public class EventPublicService {
         }
 
         return requestRepository.countConfirmedRequestsByEventIds(eventIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        result -> (Long) result[0],
+                        result -> (Long) result[1]
+                ));
+    }
+
+    private Map<Long, Long> getCommentsCountMap(List<Long> eventIds) {
+        if (eventIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return commentRepository.countCommentsByEventIds(eventIds)
                 .stream()
                 .collect(Collectors.toMap(
                         result -> (Long) result[0],
